@@ -4,19 +4,25 @@ set -eu
 
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 names_file="${TMPDIR:-/tmp}/fstack-skill-names.$$"
-trap 'rm -f "$names_file"' EXIT HUP INT TERM
+files_file="${TMPDIR:-/tmp}/fstack-skill-files.$$"
+
+cleanup() {
+  rm -f "$names_file" "$files_file"
+}
+
+trap cleanup EXIT HUP INT TERM
 : > "$names_file"
+find "$root/skills" -type f -name SKILL.md -print | LC_ALL=C sort > "$files_file"
 
-failures=0
-count=0
-files=$(find "$root/skills" -type f -name SKILL.md -print | LC_ALL=C sort)
-
-if [ -z "$files" ]; then
+if [ ! -s "$files_file" ]; then
   printf '%s\n' 'ERROR: no skills/*/SKILL.md files found.' >&2
   exit 1
 fi
 
-for file in $files; do
+failures=0
+count=0
+
+while IFS= read -r file; do
   count=$((count + 1))
   relative=${file#"$root/"}
   directory=$(basename "$(dirname "$file")")
@@ -87,7 +93,7 @@ for file in $files; do
       failures=$((failures + 1))
     fi
   fi
-done
+done < "$files_file"
 
 if [ "$failures" -ne 0 ]; then
   printf 'Validation failed: %s problem(s) across %s skill(s).\n' "$failures" "$count" >&2

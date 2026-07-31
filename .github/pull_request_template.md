@@ -17,6 +17,8 @@ Observed results:
 ## Skill and documentation checks
 
 - [ ] `sh -n scripts/validate.sh`
+- [ ] `sh -n scripts/test-validate.sh`
+- [ ] `sh scripts/test-validate.sh`
 - [ ] `sh scripts/validate.sh`
 - [ ] `git diff --check` against the base branch
 - [ ] New or changed skills are documented in `README.md`

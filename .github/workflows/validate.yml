@@ -24,14 +24,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check validator syntax
-        run: sh -n scripts/validate.sh
+      - name: Check shell syntax
+        run: |
+          sh -n scripts/validate.sh
+          sh -n scripts/test-validate.sh
+
+      - name: Test validator
+        run: sh scripts/test-validate.sh
 
       - name: Validate skill collection
         run: sh scripts/validate.sh
 
       - name: Check changed text for whitespace errors
         shell: sh
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
-          base=${GITHUB_BASE_REF:-main}
-          git diff --check "origin/$base...HEAD"
+          if [ -n "${GITHUB_BASE_REF:-}" ]; then
+            git diff --check "origin/$GITHUB_BASE_REF...HEAD"
+          elif [ -n "${BEFORE_SHA:-}" ] && \
+               [ "$BEFORE_SHA" != '0000000000000000000000000000000000000000' ]; then
+            git diff --check "$BEFORE_SHA...HEAD"
+          else
+            git show --check --format= HEAD
+          fi

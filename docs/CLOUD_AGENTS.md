@@ -136,6 +136,8 @@ For this skills repository, run:
 
 ```sh
 sh -n scripts/validate.sh
+sh -n scripts/test-validate.sh
+sh scripts/test-validate.sh
 sh scripts/validate.sh
 git diff --check
 ```
