@@ -1,81 +1,78 @@
 ---
 name: fstack
-description: The fstack front door. Invoke /fstack alone to list every skill, or with a task to route it to the right one.
+description: The fstack front door. Invoke /fstack alone to list every interactive and continuous skill, or with a task to route it. Routes cloud-agent, autonomous, unattended, end-to-end, and finish-the-task requests to fstack-run.
 ---
 
 # /fstack
 
-The front door for fstack. Read what the user wants. Pick one skill. Run it. Stop.
-
-## When to use
-
-- The user invokes `/fstack`.
-- The user asks which fstack skill fits their task.
-- The user describes work and mentions fstack without naming a skill.
+The front door for fstack. Read what the user wants. Pick one skill and run it. Do not chain separate skills.
 
 ## Steps
 
 1. Read the user's request.
-2. **If there is no task** — the user typed `/fstack` alone, or just asked what fstack can do — list the twelve skills with a one-line description each, then stop and ask what they want to do. Do not route or guess. This is the menu below.
-3. **If there is a task** — match it to one of the twelve skills below.
+2. **If there is no task** — the user typed `/fstack` alone or only asked what fstack can do — list the thirteen skills below with a one-line description each. Then stop and ask what they want to do.
+3. **If there is a task** — match it to one of the thirteen skills below.
 4. Say which skill you picked and why, in one sentence.
-5. Run that skill. Do not chain others.
+5. Run that skill. `fstack-run` owns its complete end-to-end loop; all other skills retain their own stopping rules.
 
 ## The skills
 
-When there is no task, show this list:
-
 | Skill | What it does |
 |---|---|
-| `/fstack-roast` | Stress-test a product idea. Ends with a verdict and the smallest version worth building. |
-| `/fstack-interview` | Ask about the product — demand, customer, pricing, risks — and record the answers in AGENTS.md. |
-| `/fstack-nail` | Clarify a vague task, nail down a 3-line summary, and get your yes before planning. |
-| `/fstack-plan` | Write a one-page plan with a mandatory "what we're NOT doing" section. |
-| `/fstack-build` | Implement the plan one small step at a time, asking at real choices. |
-| `/fstack-simplify` | Audit for unnecessary complexity and propose deletions — one file or the whole codebase. |
-| `/fstack-design` | Make UI match the project's existing styles and clean up design slop. |
-| `/fstack-counselors` | Ask the 3 most capable models the same question and synthesize one verdict. |
-| `/fstack-check` | Review finished work: does it work, does it match the plan, is it simple. |
-| `/fstack-document` | Write docs/ for the project, ELI5 to deep. Run again to update them. |
-| `/fstack-learn` | Capture one lesson in three lines, so future sessions start smarter. |
-| `/fstack-push` | Commit the current task's changes and push to the remote. Nothing else. |
+| `/fstack-run` | Completes a repository task continuously from inspection through verified pull request. |
+| `/fstack-roast` | Stress-tests a product idea. Ends with a verdict and the smallest version worth building. |
+| `/fstack-interview` | Asks about the product — demand, customer, pricing, risks — and records the answers in AGENTS.md. |
+| `/fstack-nail` | Clarifies a vague task, nails down a 3-line summary, and gets your yes before planning. |
+| `/fstack-plan` | Writes a one-page plan with a mandatory "what we're NOT doing" section. |
+| `/fstack-build` | Implements the plan one small step at a time, asking at real choices. |
+| `/fstack-simplify` | Audits unnecessary complexity and proposes deletions — one file or the whole codebase. |
+| `/fstack-design` | Makes UI match the project's existing styles and cleans up design slop. |
+| `/fstack-counselors` | Asks three capable models the same question and synthesizes one verdict. |
+| `/fstack-check` | Reviews finished work: does it work, does it match the plan, is it simple. |
+| `/fstack-document` | Writes or updates project documentation from ELI5 to deep. |
+| `/fstack-learn` | Captures one lesson in three lines so future sessions start smarter. |
+| `/fstack-push` | Commits the current task's changes and pushes them. It does not test or deploy. |
 
 ## Routing map
 
 | Situation | Skill |
 |---|---|
-| Product idea, not sure it's worth building | `/fstack-roast` |
-| New project, the agent lacks business context | `/fstack-interview` |
-| Vague or unclear task | `/fstack-nail` |
-| Idea is clear, no plan exists | `/fstack-plan` |
-| Plan exists and is approved | `/fstack-build` |
-| Feels bloated or sloppy — one file or the whole codebase | `/fstack-simplify` |
-| UI looks off or inconsistent with the rest | `/fstack-design` |
+| Cloud agent, autonomous, unattended, end-to-end, or "keep going until done" | `/fstack-run` |
+| Product idea, not sure it is worth building | `/fstack-roast` |
+| New project, agent lacks business context | `/fstack-interview` |
+| Vague or unclear task, user wants an approval gate | `/fstack-nail` |
+| Idea is clear, no plan exists, user wants planning only | `/fstack-plan` |
+| Approved plan exists, user wants implementation only | `/fstack-build` |
+| Feels bloated or sloppy | `/fstack-simplify` |
+| UI looks off or inconsistent | `/fstack-design` |
 | Big decision, one opinion is not enough | `/fstack-counselors` |
-| Work is done, needs review | `/fstack-check` |
-| Project needs docs, or the docs have gone stale | `/fstack-document` |
-| Something worth remembering just happened | `/fstack-learn` |
-| Just want it committed and pushed | `/fstack-push` |
+| Work is done and needs a report-only review | `/fstack-check` |
+| Project needs docs or docs are stale | `/fstack-document` |
+| A non-obvious lesson is worth preserving | `/fstack-learn` |
+| User explicitly wants only commit and push | `/fstack-push` |
 
-## Stop and ask
+## Ambiguity
 
-If you truly cannot tell which skill fits, ask **one** clarifying question. Then route.
-
-If still ambiguous after the answer, route to `/fstack-nail`. That is what it is for.
+If you truly cannot tell which skill fits, ask one clarifying question. If ambiguity remains, route to `/fstack-nail` for interactive work or `/fstack-run` when the user clearly requested continuous execution.
 
 ## Must NOT
 
-- Route when there is no task. List the skills and ask instead.
-- Chain multiple skills. Pick one, run it, stop.
-- Ask more than one clarifying question before routing.
-- Plan, code, or review inside this skill. Route and hand off.
+- Route when there is no task. List the skills instead.
+- Chain separate skills in the front door.
+- Ask more than one routing question.
+- Route a continuous cloud request into the stop-and-wait loop.
+- Route a request for review-only or push-only into autonomous code changes.
 
-## Example
+## Examples
 
 > User: `/fstack`
 >
-> Agent: *(lists the twelve skills with one-line descriptions)* "That's the full set. What do you want to do?"
+> Agent: *(lists the thirteen skills)* "What do you want to do?"
 
-> User: `/fstack I want to add dark mode to my site`
+> User: `/fstack fix issue 42 and keep going until the PR is verified`
 >
-> Agent: "This leaves important choices open, so I'll start with `/fstack-nail` to make sure I understand what you want." *(runs /fstack-nail)*
+> Agent: "This is end-to-end repository work, so I am using `/fstack-run`." *(runs fstack-run continuously)*
+
+> User: `/fstack write a plan for dark mode but do not implement it`
+>
+> Agent: "This is planning-only work, so I am using `/fstack-plan`." *(runs fstack-plan)*
