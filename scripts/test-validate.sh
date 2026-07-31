@@ -34,6 +34,17 @@ name: fstack-run
 description: Continuous runner.
 ---
 MARKDOWN
+
+  mkdir -p "$fixture/.cursor/skills" "$fixture/scripts"
+  cat > "$fixture/.cursor/environment.json" <<'JSON'
+{
+  "install": "sh scripts/install-cursor-cloud-skills.sh"
+}
+JSON
+  cp "$root/scripts/install-cursor-cloud-skills.sh" \
+    "$fixture/scripts/install-cursor-cloud-skills.sh"
+  ln -sfn ../../skills/fstack "$fixture/.cursor/skills/fstack"
+  ln -sfn ../../skills/fstack-run "$fixture/.cursor/skills/fstack-run"
 }
 
 expect_failure() {
@@ -66,5 +77,26 @@ cat > "$fixture/README.md" <<'MARKDOWN'
 `/fstack`
 MARKDOWN
 expect_failure 'README.md does not document /fstack-run.'
+
+write_valid_fixture
+rm -f "$fixture/.cursor/skills/fstack-run"
+expect_failure '.cursor/skills/fstack-run does not resolve to SKILL.md.'
+
+write_valid_fixture
+rm -f "$fixture/.cursor/environment.json"
+expect_failure 'missing .cursor/environment.json for Cursor cloud skill install.'
+
+write_valid_fixture
+install_dest="$tmp_root/cursor-skills-home"
+CURSOR_CLOUD_SKILLS_HOME="$install_dest" \
+  sh "$fixture/scripts/install-cursor-cloud-skills.sh" > "$tmp_root/install-out"
+if [ ! -f "$install_dest/fstack/SKILL.md" ] || [ ! -f "$install_dest/fstack-run/SKILL.md" ]; then
+  printf 'ERROR: install-cursor-cloud-skills.sh did not copy skills.\n' >&2
+  exit 1
+fi
+if grep -Fq 'local-path:' "$install_dest/fstack-run/SKILL.md"; then
+  printf 'ERROR: install script must copy skills without installer metadata.\n' >&2
+  exit 1
+fi
 
 printf '%s\n' 'Validator tests passed.'

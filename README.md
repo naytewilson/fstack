@@ -114,6 +114,9 @@ This fork includes:
 - `.github/copilot-instructions.md` — GitHub Copilot coding-agent entrypoint;
 - `.github/workflows/validate.yml` — automatic skill validation;
 - `.github/pull_request_template.md` — evidence-focused delivery checklist;
+- `.cursor/environment.json` — Cursor cloud install hook that runs on each environment boot;
+- `.cursor/skills/` — Cursor project skill discovery via symlinks to `skills/`;
+- `scripts/install-cursor-cloud-skills.sh` — copies skills into `~/.cursor/skills` for cloud session persistence;
 - `scripts/validate.sh` — dependency-free frontmatter, naming, size, duplication, and README checks;
 - `scripts/test-validate.sh` — regression tests for validator behavior and path safety;
 - `docs/CLOUD_AGENTS.md` — complete operator guide.
@@ -123,6 +126,7 @@ Validate locally with:
 ```sh
 sh -n scripts/validate.sh
 sh -n scripts/test-validate.sh
+sh -n scripts/install-cursor-cloud-skills.sh
 sh scripts/test-validate.sh
 sh scripts/validate.sh
 git diff --check

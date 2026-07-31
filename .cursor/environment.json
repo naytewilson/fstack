@@ -1,0 +1,3 @@
+{
+  "install": "sh scripts/install-cursor-cloud-skills.sh"
+}
