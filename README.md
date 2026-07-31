@@ -4,106 +4,145 @@ Agent skills that ask: can this be less?
 
 ## The problem
 
-Skill collections keep growing. 30 skills, personas, pipelines, voice triggers. You can't hold that in your head, so you stop using it.
+Skill collections keep growing. Personas, pipelines, ceremonies, and overlapping commands become harder to remember than the work itself.
 
-And the complexity doesn't stay in the workflow. A process built to sound smart — phases, personas, ceremony — produces code that sounds smart too: layers, abstractions, and options nobody asked for.
+That complexity leaks into the code. A process built to sound smart often produces layers, abstractions, and options nobody asked for.
 
 ## The idea
 
-fstack is 13 skills. Plain names, one job each.
+fstack is 14 small skills with plain names and one job each.
 
-The agent works in small steps and checks in with you. You approve; it executes. No long autonomous runs.
+It has two deliberate modes:
 
-One skill — `/fstack-simplify` — exists only to remove things. No other stack has that.
+- **Interactive mode:** you drive each stage and approve real choices.
+- **Cloud mode:** `/fstack-run` continues from source-truth inspection through implementation, tests, review, fixes, commit, push, and pull request.
+
+One skill — `/fstack-simplify` — exists only to remove things.
 
 ## Install
 
-```bash
-npx skills@latest add flaviocopes/fstack
+Review the available skills:
+
+```sh
+npx skills@latest add naytewilson/fstack --list
 ```
 
-That's it. No dependencies, no build step, no config.
+Install the complete collection:
 
-## The core loop
+```sh
+npx skills@latest add naytewilson/fstack
+```
+
+Install only the continuous cloud runner:
+
+```sh
+npx skills@latest add naytewilson/fstack --skill fstack-run -g -y
+```
+
+There are no runtime dependencies, build steps, or configuration files.
+
+See [Cloud-agent setup](docs/CLOUD_AGENTS.md) for permissions, client installation, invocation prompts, safety defaults, and maintenance.
+
+## Cloud mode
+
+Use `/fstack-run` when the agent should finish a repository task without routine approval stops.
+
+```mermaid
+flowchart LR
+    Inspect["Inspect source truth"] --> Isolate["Protect existing work"]
+    Isolate --> Plan["Plan briefly"]
+    Plan --> Build["Implement"]
+    Build --> Test["Test and validate"]
+    Test --> Review["Review and simplify"]
+    Review -->|Fix needed| Build
+    Review -->|Ready| Deliver["Commit, push, pull request"]
+    Deliver --> Verify["Verify checks and receipt"]
+```
+
+The runner stops only for a proven external blocker, a decision that changes the safe action, an explicit user stop, or a completed verified delivery.
+
+## Interactive mode
+
+Use the original loop when you want to control each transition:
 
 ```mermaid
 flowchart TD
-    Start{"Human: task clear?"}
+    Start{"Task clear?"}
     Start -->|No| N["fstack-nail"]
-    N --> Task["Human approves the task"]
+    N --> Task["Human approves task"]
     Task --> P["fstack-plan"]
     Start -->|Yes| P
-    P --> Plan["Human approves the plan"]
+    P --> Plan["Human approves plan"]
     Plan --> B["fstack-build"]
     B --> C["fstack-check"]
-    C -->|Ready to push| Push["fstack-push"]
-    C -->|Not ready| Earlier["Human picks the right earlier step"]
+    C -->|Ready| Push["fstack-push"]
+    C -->|Not ready| Earlier["Human chooses an earlier step"]
     Earlier -.-> N
     Earlier -.-> P
     Earlier -.-> B
 ```
 
-Invoke a skill directly, or ask `/fstack` to choose one. Nothing continues automatically.
+Invoke a skill directly, or ask `/fstack` to choose one.
 
-Before the loop:
-
-- `/fstack-roast` — when you have a product idea and want honest pushback before writing code
-- `/fstack-interview` — when the agent should know the business behind the project; it asks, you answer, the answers land in AGENTS.md
-
-Sprinkle in anywhere:
-
-- `/fstack-simplify` — when something feels bloated, from one file to the whole codebase
-- `/fstack-design` — when UI looks off or inconsistent with the rest
-- `/fstack-document` — when the project needs docs, or the docs have gone stale
-- `/fstack-learn` — when something is worth remembering
-- `/fstack-counselors` — when a decision is big enough to want three independent model opinions
-
-Don't know where to start? `/fstack` is the front door.
-
-```mermaid
-flowchart LR
-    Map["Where each skill fits"]
-    Map --> Front["Front door<br/>fstack"]
-    Map --> Before["Before building<br/>fstack-roast<br/>fstack-interview"]
-    Map --> Core["Core loop<br/>fstack-nail<br/>(when unclear)<br/>fstack-plan<br/>fstack-build<br/>fstack-check<br/>fstack-push"]
-    Map --> Needed["Use when needed<br/>fstack-simplify<br/>fstack-design<br/>fstack-document<br/>fstack-counselors"]
-    Map --> After["After useful work<br/>fstack-learn"]
-```
-
-## The 13 skills
+## The 14 skills
 
 | Skill | What it does |
 |---|---|
-| `/fstack` | The front door. Picks the right skill for your request. |
-| `/fstack-roast` | Stress-tests a product idea. Ends with a verdict and the smallest version worth building. |
-| `/fstack-interview` | Interviews you about the product — demand, customer, pricing, risks — and records the answers in AGENTS.md. |
-| `/fstack-counselors` | Asks the 3 most capable models the same question, independently, and synthesizes one verdict plus each opinion. |
-| `/fstack-nail` | Clarifies a vague task, nails down a 3-line summary, and gets your yes before planning. |
+| `/fstack` | Front door. Lists the stack or routes a task to one skill. |
+| `/fstack-run` | Completes repository work continuously from inspection through verified pull request. |
+| `/fstack-roast` | Stress-tests a product idea and finds the smallest version worth building. |
+| `/fstack-interview` | Records product, customer, demand, pricing, distribution, and risk context in the repository. |
+| `/fstack-counselors` | Gets three independent model opinions and synthesizes one verdict. |
+| `/fstack-nail` | Clarifies a vague task and gets approval on a three-line summary. |
 | `/fstack-plan` | Writes a one-page plan with a mandatory "what we're NOT doing" section. |
-| `/fstack-build` | Implements the plan one small step at a time, asking at real choices. |
-| `/fstack-simplify` | Audits for unnecessary complexity and proposes deletions — one file or the whole codebase. Only deletions. |
-| `/fstack-design` | Makes UI adhere to the project's existing styles and cleans up design slop. |
-| `/fstack-document` | Writes docs/ for the project, ELI5 to deep. Run again to update them with changes. |
-| `/fstack-check` | Three questions: does it work, does it match the plan, is it simple. |
-| `/fstack-learn` | Captures one lesson in three lines, so future sessions start smarter. |
-| `/fstack-push` | Commits the current task's changes and pushes to the remote. Nothing else — no tests, no deploy. |
+| `/fstack-build` | Implements an approved plan in small verified steps. |
+| `/fstack-simplify` | Audits unnecessary complexity and proposes deletions only. |
+| `/fstack-design` | Makes UI follow the project's existing visual system. |
+| `/fstack-document` | Writes or updates project documentation from ELI5 to deep. |
+| `/fstack-check` | Reviews whether work functions, matches the plan, and stays simple. |
+| `/fstack-learn` | Captures one non-obvious lesson in three lines. |
+| `/fstack-push` | Commits task-owned changes and pushes them. It intentionally does not test or deploy. |
+
+## Repository support for cloud agents
+
+This fork includes:
+
+- `AGENTS.md` — canonical repository-wide agent contract;
+- `CLAUDE.md` — Claude Code entrypoint;
+- `.github/copilot-instructions.md` — GitHub Copilot coding-agent entrypoint;
+- `.github/workflows/validate.yml` — automatic skill validation;
+- `.github/pull_request_template.md` — evidence-focused delivery checklist;
+- `scripts/validate.sh` — dependency-free frontmatter, naming, size, duplication, and README checks;
+- `docs/CLOUD_AGENTS.md` — complete operator guide.
+
+Validate locally with:
+
+```sh
+sh -n scripts/validate.sh
+sh scripts/validate.sh
+git diff --check
+```
 
 ## Philosophy
 
 1. Short sentences. One idea per sentence.
 2. Short paragraphs, then a blank line.
-3. No jargon. If a plumber wouldn't understand the word, find a simpler one.
-4. No personas. Skills describe steps, not characters.
+3. Plain language before jargon.
+4. No personas. Skills describe actions, not characters.
 5. One job per skill.
-6. Prefer deletion. When something can be shorter, make it shorter.
-7. Every skill fits in ~150 lines. If it doesn't, it's doing too much.
-8. The human drives. Skills pause at decision points and ask.
-9. Agent-agnostic. Plain markdown, no hardcoded tool names.
-10. Plain-English tone. Like explaining to a friend.
+6. Prefer deletion and the smallest complete change.
+7. Keep each skill compact; move real detail into referenced files only when needed.
+8. Interactive skills stop at decision points. The cloud runner continues through ordinary choices.
+9. Stay agent-agnostic and use the open `SKILL.md` format.
+10. Evidence beats confidence. Unrun tests are missing evidence, not a pass.
+11. Preserve unrelated work. Never make destructive Git behavior an automation default.
+12. A cloud run is done only after implementation, verification, review, and durable delivery.
 
 ## Credits
 
-fstack exists because of the stacks it distills. [gstack](https://github.com/garrytan/gstack) by Garry Tan gave it the full lifecycle idea and, through office hours, the idea-roasting step. [pstack](https://cursor.com/marketplace/cursor/pstack) by Lauren Tan gave it design-before-code and blast-radius thinking. [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) by Every gave it the plan artifact and the lesson-capture step. [Matt Pocock's skills](https://github.com/mattpocock/skills) gave it grilling, the two-axis review, and the small-skills shape. [counselors](https://github.com/aarondfrancis/fstack-counselors) by Aaron Francis gave it the council-of-advisors pattern behind `/fstack-counselors`. Go look at all of them — they're generous, thoughtful work.
+fstack exists because of the stacks it distills. [gstack](https://github.com/garrytan/gstack) by Garry Tan gave it the full lifecycle idea and idea-roasting step. [pstack](https://cursor.com/marketplace/cursor/pstack) by Lauren Tan gave it design-before-code and blast-radius thinking. [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) by Every gave it the plan artifact and lesson-capture step. [Matt Pocock's skills](https://github.com/mattpocock/skills) gave it grilling, two-axis review, and the small-skills shape. [counselors](https://github.com/aarondfrancis/fstack-counselors) by Aaron Francis gave it the independent-advisor pattern behind `/fstack-counselors`.
+
+The original fstack was created by [Flavio Copes](https://github.com/flaviocopes/fstack). This fork keeps the interactive stack and adds the continuous cloud-agent operating mode.
 
 ## License
 
