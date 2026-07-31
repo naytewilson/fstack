@@ -39,7 +39,7 @@ Install only the continuous cloud runner:
 npx skills@latest add naytewilson/fstack --skill fstack-run -g -y
 ```
 
-There are no runtime dependencies, build steps, or configuration files.
+The skills themselves have no runtime dependencies or build step.
 
 See [Cloud-agent setup](docs/CLOUD_AGENTS.md) for permissions, client installation, invocation prompts, safety defaults, and maintenance.
 
