@@ -4,7 +4,28 @@
 
 The original skills remain interactive. Use them when you want to drive each stage manually.
 
-## 1. Review before installing
+## 1. Cursor Cloud Agents
+
+Cursor Cloud Agents do not sync laptop-global `~/.cursor/skills`. This repository installs skills for cloud sessions in two ways:
+
+1. **Project discovery:** `.cursor/skills/<name>` symlinks to the canonical `skills/<name>` trees so agents pick skills up from the checkout.
+2. **Session home install:** `.cursor/environment.json` runs `scripts/install-cursor-cloud-skills.sh`, which copies every skill into `~/.cursor/skills` on the cloud VM. That install is idempotent and re-runs on each environment boot.
+
+To refresh the home install in an already-running cloud session:
+
+```sh
+sh scripts/install-cursor-cloud-skills.sh
+```
+
+Override the destination when testing:
+
+```sh
+CURSOR_CLOUD_SKILLS_HOME=/tmp/cursor-skills-home sh scripts/install-cursor-cloud-skills.sh
+```
+
+After merging, start a new cloud agent on this repository so `.cursor/environment.json` is applied. Optionally save a cloud environment snapshot from the [Cloud Agents dashboard](https://cursor.com/dashboard/cloud-agents#environments) so later sessions reuse the installed home skills faster.
+
+## 2. Review before installing
 
 Agent skills are executable instructions. Inspect this repository and the selected `SKILL.md` before giving an agent write access to an important repository.
 
@@ -20,7 +41,7 @@ For clients using the cross-agent `skills` CLI, list the collection without inst
 npx skills@latest add naytewilson/fstack --list
 ```
 
-## 2. Install with GitHub CLI
+## 3. Install with GitHub CLI
 
 `gh skill` is GitHub's preview interface for Copilot cloud agent and supported agent hosts. A project install is the safest default because the reviewed skill version travels with one repository.
 
@@ -44,7 +65,7 @@ gh skill install naytewilson/fstack fstack-run --pin <reviewed-tag-or-sha>
 
 The installer writes the skill into the correct host-specific location. GitHub Copilot project skills live under `.github/skills`, `.claude/skills`, or `.agents/skills`; personal skills live under `~/.copilot/skills` or `~/.agents/skills`.
 
-## 3. Install with the cross-agent CLI
+## 4. Install with the cross-agent CLI
 
 Use this route for Codex, Claude Code, OpenCode, and other clients supported by the `skills` CLI.
 
@@ -74,7 +95,7 @@ npx skills@latest add naytewilson/fstack --all
 
 Project installation is better when a team should share the same version. Global installation is better for a personal default across repositories.
 
-## 4. Give the cloud agent the right repository access
+## 5. Give the cloud agent the right repository access
 
 A full run needs:
 
@@ -86,7 +107,7 @@ A full run needs:
 
 It does not need permission to force-push, merge, deploy, edit repository settings, or read production secrets for ordinary coding tasks. Keep those permissions disabled unless a specific task requires them.
 
-## 5. Start a run
+## 6. Start a run
 
 A compact task is enough:
 
@@ -96,7 +117,7 @@ Use /fstack-run. Fix the reported issue end to end. Inspect source truth first, 
 
 Include acceptance criteria, issue links, screenshots, or failing commands when they exist. Do not restate repository facts that the agent can inspect.
 
-## 6. Expected lifecycle
+## 7. Expected lifecycle
 
 A compliant cloud run performs this loop:
 
@@ -106,18 +127,20 @@ inspect -> isolate -> plan briefly -> implement -> test -> review -> fix -> rete
 
 The agent may repeat implementation, testing, and review. It should not stop merely because one phase completed.
 
-## 7. Repository instruction files
+## 8. Repository instruction files
 
 This repository includes:
 
 - `AGENTS.md` as the canonical cross-agent contract;
 - `CLAUDE.md` as a Claude Code entrypoint;
 - `.github/copilot-instructions.md` as a GitHub Copilot coding-agent entrypoint;
+- `.cursor/environment.json` and `scripts/install-cursor-cloud-skills.sh` for Cursor cloud skill persistence;
+- `.cursor/skills/` symlinks for Cursor project skill discovery;
 - `skills/fstack-run/SKILL.md` as the portable continuous workflow.
 
 When installing fstack into another repository, that repository's own instructions remain authoritative. The skill must adapt to them rather than overwrite them.
 
-## 8. Verification and delivery
+## 9. Verification and delivery
 
 A successful run must provide observed evidence for:
 
@@ -137,6 +160,7 @@ For this skills repository, run:
 ```sh
 sh -n scripts/validate.sh
 sh -n scripts/test-validate.sh
+sh -n scripts/install-cursor-cloud-skills.sh
 sh scripts/test-validate.sh
 sh scripts/validate.sh
 git diff --check
@@ -150,7 +174,7 @@ gh skill publish --dry-run
 
 The publish dry run validates the skills and reports relevant repository security settings without creating a release.
 
-## 9. Safe automation defaults
+## 10. Safe automation defaults
 
 Use these defaults for unattended cloud execution:
 
@@ -165,7 +189,7 @@ Use these defaults for unattended cloud execution:
 
 Do not add `allowed-tools: shell` or `allowed-tools: bash` merely to suppress prompts. Pre-approve terminal execution only after auditing the full skill and every referenced script.
 
-## 10. Repository settings worth enabling
+## 11. Repository settings worth enabling
 
 For repositories where cloud agents routinely open pull requests, enable:
 
@@ -179,7 +203,7 @@ For repositories where cloud agents routinely open pull requests, enable:
 
 These are host-level controls. Installing a skill does not configure them automatically.
 
-## 11. Update and audit
+## 12. Update and audit
 
 Review upstream changes before updating a trusted automation environment.
 
@@ -199,7 +223,7 @@ npx skills update
 
 Pinned GitHub CLI installations are skipped by normal updates. Reinstall them with a newly reviewed pin when you deliberately upgrade.
 
-## 12. Troubleshooting
+## 13. Troubleshooting
 
 ### The agent stops after planning
 
@@ -216,3 +240,5 @@ The run is incomplete. Resume it with the missing verification requirement and r
 ### The client cannot find the skill
 
 Preview or list the repository, verify the selected agent and installation scope, and confirm that the installed folder contains `fstack-run/SKILL.md` with intact YAML frontmatter.
+
+For Cursor Cloud Agents, confirm `.cursor/skills/fstack-run/SKILL.md` resolves from the checkout and that `sh scripts/install-cursor-cloud-skills.sh` populated `~/.cursor/skills`. New sessions need `.cursor/environment.json` from the branch they check out.

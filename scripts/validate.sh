@@ -95,6 +95,45 @@ while IFS= read -r file; do
   fi
 done < "$files_file"
 
+cursor_env="$root/.cursor/environment.json"
+cursor_skills="$root/.cursor/skills"
+install_script="$root/scripts/install-cursor-cloud-skills.sh"
+
+if [ ! -f "$cursor_env" ]; then
+  printf 'ERROR: missing .cursor/environment.json for Cursor cloud skill install.\n' >&2
+  failures=$((failures + 1))
+elif ! grep -Fq 'scripts/install-cursor-cloud-skills.sh' "$cursor_env"; then
+  printf 'ERROR: .cursor/environment.json must run scripts/install-cursor-cloud-skills.sh.\n' >&2
+  failures=$((failures + 1))
+fi
+
+if [ ! -f "$install_script" ]; then
+  printf 'ERROR: missing scripts/install-cursor-cloud-skills.sh.\n' >&2
+  failures=$((failures + 1))
+fi
+
+if [ ! -d "$cursor_skills" ]; then
+  printf 'ERROR: missing .cursor/skills for Cursor project discovery.\n' >&2
+  failures=$((failures + 1))
+else
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+    if [ ! -e "$cursor_skills/$name/SKILL.md" ]; then
+      printf 'ERROR: .cursor/skills/%s does not resolve to SKILL.md.\n' "$name" >&2
+      failures=$((failures + 1))
+    fi
+  done < "$names_file"
+
+  for entry in "$cursor_skills"/*; do
+    [ -e "$entry" ] || continue
+    name=$(basename "$entry")
+    if [ ! -f "$root/skills/$name/SKILL.md" ]; then
+      printf 'ERROR: .cursor/skills/%s has no matching skills/%s.\n' "$name" "$name" >&2
+      failures=$((failures + 1))
+    fi
+  done
+fi
+
 if [ "$failures" -ne 0 ]; then
   printf 'Validation failed: %s problem(s) across %s skill(s).\n' "$failures" "$count" >&2
   exit 1
