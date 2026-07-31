@@ -42,6 +42,8 @@ Run all applicable checks. For this repository, the minimum gate is:
 
 ```sh
 sh -n scripts/validate.sh
+sh -n scripts/test-validate.sh
+sh scripts/test-validate.sh
 sh scripts/validate.sh
 git diff --check
 ```
