@@ -21,27 +21,29 @@ One skill — `/fstack-simplify` — exists only to remove things.
 
 ## Install
 
-Review the available skills:
+With GitHub CLI 2.90 or later, preview and install the continuous runner for GitHub Copilot or another supported agent host:
+
+```sh
+gh skill preview naytewilson/fstack fstack-run
+gh skill install naytewilson/fstack fstack-run
+```
+
+With the cross-agent `skills` CLI, review the collection and install only the runner globally:
 
 ```sh
 npx skills@latest add naytewilson/fstack --list
+npx skills@latest add naytewilson/fstack --skill fstack-run -g -y
 ```
 
-Install the complete collection:
+Install the complete collection interactively:
 
 ```sh
 npx skills@latest add naytewilson/fstack
 ```
 
-Install only the continuous cloud runner:
-
-```sh
-npx skills@latest add naytewilson/fstack --skill fstack-run -g -y
-```
-
 The skills themselves have no runtime dependencies or build step.
 
-See [Cloud-agent setup](docs/CLOUD_AGENTS.md) for permissions, client installation, invocation prompts, safety defaults, and maintenance.
+See [Cloud-agent setup](docs/CLOUD_AGENTS.md) for agent-specific installation, permissions, invocation prompts, safety defaults, validation, updates, and maintenance.
 
 ## Cloud mode
 
@@ -121,6 +123,12 @@ Validate locally with:
 sh -n scripts/validate.sh
 sh scripts/validate.sh
 git diff --check
+```
+
+With GitHub CLI 2.90 or later, run the current Agent Skills publishing checks without publishing:
+
+```sh
+gh skill publish --dry-run
 ```
 
 ## Philosophy
