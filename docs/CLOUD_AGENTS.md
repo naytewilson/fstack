@@ -8,13 +8,45 @@ The original skills remain interactive. Use them when you want to drive each sta
 
 Agent skills are executable instructions. Inspect this repository and the selected `SKILL.md` before giving an agent write access to an important repository.
 
-List the available skills without installing them:
+With GitHub CLI 2.90 or later, preview the continuous runner without installing it:
+
+```sh
+gh skill preview naytewilson/fstack fstack-run
+```
+
+For clients using the cross-agent `skills` CLI, list the collection without installing it:
 
 ```sh
 npx skills@latest add naytewilson/fstack --list
 ```
 
-## 2. Install
+## 2. Install with GitHub CLI
+
+`gh skill` is GitHub's preview interface for Copilot cloud agent and supported agent hosts. A project install is the safest default because the reviewed skill version travels with one repository.
+
+Install `fstack-run` for GitHub Copilot at project scope:
+
+```sh
+gh skill install naytewilson/fstack fstack-run
+```
+
+Install it for a named host and user scope:
+
+```sh
+gh skill install naytewilson/fstack fstack-run --agent claude-code --scope user
+```
+
+Pin an audited tag or commit for a stricter environment:
+
+```sh
+gh skill install naytewilson/fstack fstack-run --pin <reviewed-tag-or-sha>
+```
+
+The installer writes the skill into the correct host-specific location. GitHub Copilot project skills live under `.github/skills`, `.claude/skills`, or `.agents/skills`; personal skills live under `~/.copilot/skills` or `~/.agents/skills`.
+
+## 3. Install with the cross-agent CLI
+
+Use this route for Codex, Claude Code, OpenCode, and other clients supported by the `skills` CLI.
 
 Install only the continuous runner into the current project:
 
@@ -42,7 +74,7 @@ npx skills@latest add naytewilson/fstack --all
 
 Project installation is better when a team should share the same version. Global installation is better for a personal default across repositories.
 
-## 3. Give the cloud agent the right repository access
+## 4. Give the cloud agent the right repository access
 
 A full run needs:
 
@@ -54,7 +86,7 @@ A full run needs:
 
 It does not need permission to force-push, merge, deploy, edit repository settings, or read production secrets for ordinary coding tasks. Keep those permissions disabled unless a specific task requires them.
 
-## 4. Start a run
+## 5. Start a run
 
 A compact task is enough:
 
@@ -64,7 +96,7 @@ Use /fstack-run. Fix the reported issue end to end. Inspect source truth first, 
 
 Include acceptance criteria, issue links, screenshots, or failing commands when they exist. Do not restate repository facts that the agent can inspect.
 
-## 5. Expected lifecycle
+## 6. Expected lifecycle
 
 A compliant cloud run performs this loop:
 
@@ -74,7 +106,7 @@ inspect -> isolate -> plan briefly -> implement -> test -> review -> fix -> rete
 
 The agent may repeat implementation, testing, and review. It should not stop merely because one phase completed.
 
-## 6. Repository instruction files
+## 7. Repository instruction files
 
 This repository includes:
 
@@ -85,7 +117,7 @@ This repository includes:
 
 When installing fstack into another repository, that repository's own instructions remain authoritative. The skill must adapt to them rather than overwrite them.
 
-## 7. Verification and delivery
+## 8. Verification and delivery
 
 A successful run must provide observed evidence for:
 
@@ -100,7 +132,23 @@ Unavailable checks belong under `MISSING EVIDENCE`. They are not silently conver
 
 By default, `fstack-run` stops after a verified pull request. Merging and deployment require an explicit request and repository permission.
 
-## 8. Safe automation defaults
+For this skills repository, run:
+
+```sh
+sh -n scripts/validate.sh
+sh scripts/validate.sh
+git diff --check
+```
+
+With GitHub CLI 2.90 or later, also validate against GitHub's current Agent Skills publishing checks:
+
+```sh
+gh skill publish --dry-run
+```
+
+The publish dry run validates the skills and reports relevant repository security settings without creating a release.
+
+## 9. Safe automation defaults
 
 Use these defaults for unattended cloud execution:
 
@@ -113,7 +161,9 @@ Use these defaults for unattended cloud execution:
 - no merge or deployment merely because tests passed;
 - no claim of success without observed output.
 
-## 9. Repository settings worth enabling
+Do not add `allowed-tools: shell` or `allowed-tools: bash` merely to suppress prompts. Pre-approve terminal execution only after auditing the full skill and every referenced script.
+
+## 10. Repository settings worth enabling
 
 For repositories where cloud agents routinely open pull requests, enable:
 
@@ -122,24 +172,32 @@ For repositories where cloud agents routinely open pull requests, enable:
 - blocked force-pushes and deletions;
 - pull requests before merge;
 - automatic branch deletion after merge, when appropriate;
-- least-privilege tokens or GitHub App permissions.
+- least-privilege tokens or GitHub App permissions;
+- secret scanning and code scanning where the repository plan supports them.
 
 These are host-level controls. Installing a skill does not configure them automatically.
 
-## 10. Update and audit
+## 11. Update and audit
 
 Review upstream changes before updating a trusted automation environment.
 
-Check installed skills and update through the skills CLI:
+For installations managed by GitHub CLI:
+
+```sh
+gh skill update
+gh skill update --all
+```
+
+For installations managed by the cross-agent CLI:
 
 ```sh
 npx skills list
 npx skills update
 ```
 
-For stricter environments, pin the repository source to a reviewed commit in the surrounding automation and update that pin deliberately.
+Pinned GitHub CLI installations are skipped by normal updates. Reinstall them with a newly reviewed pin when you deliberately upgrade.
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 ### The agent stops after planning
 
@@ -155,4 +213,4 @@ The run is incomplete. Resume it with the missing verification requirement and r
 
 ### The client cannot find the skill
 
-Run the list command, verify the selected agent and installation scope, and confirm that the installed folder contains `fstack-run/SKILL.md` with intact YAML frontmatter.
+Preview or list the repository, verify the selected agent and installation scope, and confirm that the installed folder contains `fstack-run/SKILL.md` with intact YAML frontmatter.
