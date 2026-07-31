@@ -115,12 +115,15 @@ This fork includes:
 - `.github/workflows/validate.yml` — automatic skill validation;
 - `.github/pull_request_template.md` — evidence-focused delivery checklist;
 - `scripts/validate.sh` — dependency-free frontmatter, naming, size, duplication, and README checks;
+- `scripts/test-validate.sh` — regression tests for validator behavior and path safety;
 - `docs/CLOUD_AGENTS.md` — complete operator guide.
 
 Validate locally with:
 
 ```sh
 sh -n scripts/validate.sh
+sh -n scripts/test-validate.sh
+sh scripts/test-validate.sh
 sh scripts/validate.sh
 git diff --check
 ```
